@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+        }
+        form { 
+            max-width: 400px; 
+            margin-bottom: 30px;
+        }
+        select, button, input[type="file"] { 
+            display: block; 
+            margin: 10px 0; 
+            padding: 8px; 
+            width: 100%; 
+        }
+        button { 
+            background: #FF9800; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+        }
+        #results { 
+            margin-top: 20px; 
+        }
+        #error { 
+            color: red; 
+        }
+        .logout { 
+            background: #f44336; 
+            width: 150px; 
+        }
+        #imageList {
+            margin-top: 15px;
+        }
+        .upload-btn {
+        width: auto;            /* removes 100% width */
+        padding: 5px 12px;      /* smaller padding */
+        font-size: 14px;        /* smaller text */
+        background: #FF9800;    /* keep same color */
+        cursor: pointer;
+        border: none;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    </style>
+</head>
+<body>
+
+    <h1>Compliance Predictor Dashboard</h1>
+    <button class="logout" onclick="logout()">Logout</button>
+
+    <form id="mappingForm">
+        <select id="country" required>
+            <option value="">Select Country</option>
+            <option value="India">India</option>
+            <option value="USA">USA</option>
+            <option value="Singapore">Singapore</option>
+            <option value="UAE">UAE</option>
+            <option value="Germany">Germany (EU)</option>
+        </select>
+
+        <select id="entity" required>
+            <option value="">Select Entity Type</option>
+            <option value="Individual">Individual</option>
+            <option value="Business">Business</option>
+        </select>
+
+        <select id="product" required>
+            <option value="">Select Product Category</option>
+            <option value="Fintech">Fintech / Payments</option>
+            <option value="Insurance">Insurance</option>
+            <option value="eSIM">eSIM / Telecom</option>
+        </select>
+
+        <button type="submit">Get Requirements</button>
+      <!--  <button onclick="loadDummyData()">Load Dummy Data</button>
+        <!-- Button to load dummy data for testing -->
+
+    </form>
+
+    <div id="error"></div>
+    <div id="results"></div>
+    <div id="dummyData"></div> <!--For displaying dummy data -->
+
+
+    <hr>
+
+    <h2>Upload Required Documents</h2>
+    <input type="file" id="fileInput">
+    <button class="upload-btn" onclick="uploadFile()">Upload File</button>
+
+
+    <h2>Your Uploaded Files</h2>
+    <ul id="imageList"></ul>
+
+    <script>
+        const BASE_URL = "http://127.0.0.1:5000";
+
+        // Redirect if not logged in
+        if (!localStorage.getItem("loggedIn")) {
+            window.location.href = "signin.html";
+        }
+
+        function logout() {
+            localStorage.removeItem("loggedIn");
+            fetch(`${BASE_URL}/logout`, {
+                method: "POST",
+                credentials: "include"
+            });
+            window.location.href = "signin.html";
+        }
+
+        // Fetch requirements
+        document.getElementById("mappingForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const country = document.getElementById("country").value;
+            const entity = document.getElementById("entity").value;
+            const product = document.getElementById("product").value;
+
+            const errorDiv = document.getElementById("error");
+            const resultsDiv = document.getElementById("results");
+
+            errorDiv.textContent = "";
+            resultsDiv.innerHTML = "";
+
+            try {
+                const response = await fetch(`${BASE_URL}/get_mappings`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ country, entity, product })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultsDiv.innerHTML = `
+                        <h3>Required Documents:</h3>
+                        <ul>${data.docs.map(doc => `<li>${doc}</li>`).join("")}</ul>
+                        <h3>Applicable Compliance Frameworks:</h3>
+                        <ul>${data.compliance.map(c => `<li>${c}</li>`).join("")}</ul>
+                    `;
+                } else {
+                    errorDiv.textContent = data.error;
+                }
+
+            } catch (err) {
+                errorDiv.textContent = "Network error";
+            }
+        });
+
+        // Upload file
+        async function uploadFile() {
+            const fileInput = document.getElementById("fileInput");
+
+            if (!fileInput.files.length) {
+                alert("No file selected");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            const res = await fetch(`${BASE_URL}/upload_image`, {
+                method: "POST",
+                credentials: "include",
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (data.status === "success") {
+                alert("File uploaded successfully");
+                loadImages();
+            } else {
+                alert("Upload failed");
+            }
+        }
+
+        // Load images
+        async function loadImages() {
+            const res = await fetch(`${BASE_URL}/get_images`, {
+                method: "GET",
+                credentials: "include"
+            });
+
+            const imgs = await res.json();
+            const list = document.getElementById("imageList");
+
+            list.innerHTML = imgs.map(i => `<li>${i.filename}</li>`).join("");
+        }
+
+        // Load on page start
+        loadImages();
+
+    async function loadDummyData() {
+
+        const res = await fetch(`${BASE_URL}/get_dummy_data`);
+        const data = await res.json();
+
+        document.getElementById("dummyData").innerHTML = data.map(d => `
+            <div style="margin-bottom:20px;">
+                <h3>${d.country} → ${d.entity} → ${d.product}</h3>
+                <strong>Docs:</strong>
+                <ul>${d.docs.map(x => `<li>${x}</li>`).join("")}</ul>
+                <strong>Compliance:</strong>
+                <ul>${d.compliance.map(x => `<li>${x}</li>`).join("")}</ul>
+            </div>
+        `).join("");
+    }
+    </script>
+
+</body>
+</html>
