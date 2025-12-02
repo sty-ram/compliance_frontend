@@ -8,46 +8,55 @@
             font-family: Arial, sans-serif; 
             margin: 20px; 
         }
+
         form { 
             max-width: 400px; 
             margin-bottom: 30px;
         }
-        select, button, input[type="file"] { 
+
+        select, button { 
             display: block; 
             margin: 10px 0; 
             padding: 8px; 
             width: 100%; 
         }
+
         button { 
             background: #FF9800; 
             color: white; 
             border: none; 
             cursor: pointer; 
         }
-        #results { 
-            margin-top: 20px; 
-        }
-        #error { 
-            color: red; 
-        }
+
+        #results { margin-top: 20px; }
+        #error { color: red; }
+
         .logout { 
             background: #f44336; 
             width: 150px; 
         }
-        #imageList {
-            margin-top: 15px;
-        }
-        .upload-btn {
-        width: auto;            /* removes 100% width */
-        padding: 5px 12px;      /* smaller padding */
-        font-size: 14px;        /* smaller text */
-        background: #FF9800;    /* keep same color */
-        cursor: pointer;
-        border: none;
-        border-radius: 4px;
-        display: inline-block;
-    }
 
+        /* Small buttons for upload/view */
+        .upload-btn-small, .view-btn-small {
+            padding: 4px 10px;
+            margin-left: 10px;
+            font-size: 13px;
+            width: auto;
+            display: inline-block;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .upload-btn-small {
+            background: #FF9800;
+            color: white;
+        }
+
+        .view-btn-small {
+            background: #2196F3;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -79,30 +88,15 @@
         </select>
 
         <button type="submit">Get Requirements</button>
-      <!--  <button onclick="loadDummyData()">Load Dummy Data</button>
-        <!-- Button to load dummy data for testing -->
-
     </form>
 
     <div id="error"></div>
     <div id="results"></div>
-    <div id="dummyData"></div> <!--For displaying dummy data -->
-
-
-    <hr>
-
-    <h2>Upload Required Documents</h2>
-    <input type="file" id="fileInput">
-    <button class="upload-btn" onclick="uploadFile()">Upload File</button>
-
-
-    <h2>Your Uploaded Files</h2>
-    <ul id="imageList"></ul>
 
     <script>
         const BASE_URL = "http://127.0.0.1:5000";
 
-        // Redirect if not logged in
+        /* Redirect if user not logged in */
         if (!localStorage.getItem("loggedIn")) {
             window.location.href = "signin.html";
         }
@@ -116,7 +110,7 @@
             window.location.href = "signin.html";
         }
 
-        // Fetch requirements
+        /* Fetch compliance requirements */
         document.getElementById("mappingForm").addEventListener("submit", async (e) => {
             e.preventDefault();
 
@@ -143,7 +137,14 @@
                 if (response.ok) {
                     resultsDiv.innerHTML = `
                         <h3>Required Documents:</h3>
-                        <ul>${data.docs.map(doc => `<li>${doc}</li>`).join("")}</ul>
+                        ${data.docs.map(doc => `
+                            <div style="margin-bottom:10px;">
+                                <strong>${doc}</strong>
+                                <button class="upload-btn-small" onclick="uploadFor('${doc}')">Upload</button>
+                                <button class="view-btn-small" onclick="viewFor('${doc}')">View</button>
+                            </div>
+                        `).join("")}
+
                         <h3>Applicable Compliance Frameworks:</h3>
                         <ul>${data.compliance.map(c => `<li>${c}</li>`).join("")}</ul>
                     `;
@@ -156,17 +157,24 @@
             }
         });
 
-        // Upload file
-        async function uploadFile() {
-            const fileInput = document.getElementById("fileInput");
+        /* Pick a file via dialog */
+        function pickFile() {
+            return new Promise(resolve => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.onchange = () => resolve(input.files[0]);
+                input.click();
+            });
+        }
 
-            if (!fileInput.files.length) {
-                alert("No file selected");
-                return;
-            }
+        /* Upload file for specific requirement */
+        async function uploadFor(docType) {
+            const file = await pickFile();
+            if (!file) return;
 
             const formData = new FormData();
-            formData.append("file", fileInput.files[0]);
+            formData.append("file", file);
+            formData.append("doc_type", docType);
 
             const res = await fetch(`${BASE_URL}/upload_image`, {
                 method: "POST",
@@ -177,44 +185,32 @@
             const data = await res.json();
 
             if (data.status === "success") {
-                alert("File uploaded successfully");
-                loadImages();
+                alert(`Uploaded for ${docType}`);
             } else {
                 alert("Upload failed");
             }
         }
 
-        // Load images
-        async function loadImages() {
-            const res = await fetch(`${BASE_URL}/get_images`, {
+        /* View uploaded files for a document type */
+        async function viewFor(docType) {
+            const res = await fetch(`${BASE_URL}/get_images?doc_type=${encodeURIComponent(docType)}`, {
                 method: "GET",
                 credentials: "include"
             });
 
             const imgs = await res.json();
-            const list = document.getElementById("imageList");
 
-            list.innerHTML = imgs.map(i => `<li>${i.filename}</li>`).join("");
+            if (!imgs.length) {
+                alert(`No files uploaded for ${docType}`);
+                return;
+            }
+
+            alert(
+                `Files for ${docType}:\n` +
+                imgs.map(i => i.filename).join("\n")
+            );
         }
 
-        // Load on page start
-        loadImages();
-
-    async function loadDummyData() {
-
-        const res = await fetch(`${BASE_URL}/get_dummy_data`);
-        const data = await res.json();
-
-        document.getElementById("dummyData").innerHTML = data.map(d => `
-            <div style="margin-bottom:20px;">
-                <h3>${d.country} → ${d.entity} → ${d.product}</h3>
-                <strong>Docs:</strong>
-                <ul>${d.docs.map(x => `<li>${x}</li>`).join("")}</ul>
-                <strong>Compliance:</strong>
-                <ul>${d.compliance.map(x => `<li>${x}</li>`).join("")}</ul>
-            </div>
-        `).join("");
-    }
     </script>
 
 </body>
