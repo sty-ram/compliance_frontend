@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -213,5 +213,393 @@
 
     </script>
 
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> <!-- For icons -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            min-height: 100vh;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin: 0;
+            color: #4a4a4a;
+            font-weight: 300;
+        }
+        .logout {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        form {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .input-group {
+            position: relative;
+        }
+        select {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background: white;
+        }
+        select:focus {
+            border-color: #2196F3;
+            box-shadow: 0 0 8px rgba(33, 150, 243, 0.3);
+            outline: none;
+        }
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 18px;
+        }
+        button[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #FF9800 0%, #fb8c00 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        button[type="submit"]:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        #error {
+            color: #e74c3c;
+            margin-top: 15px;
+            font-size: 14px;
+            min-height: 20px;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        .document-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+        }
+        .document-item strong {
+            flex-grow: 1;
+        }
+        .upload-btn-small, .view-btn-small {
+            padding: 8px 12px;
+            margin-left: 10px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .upload-btn-small {
+            background: #FF9800;
+            color: white;
+        }
+        .upload-btn-small:hover {
+            background: #fb8c00;
+        }
+        .view-btn-small {
+            background: #2196F3;
+            color: white;
+        }
+        .view-btn-small:hover {
+            background: #1976d2;
+        }
+        .compliance-list {
+            list-style: none;
+            padding: 0;
+        }
+        .compliance-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .compliance-list li:last-child {
+            border-bottom: none;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FF9800;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .document-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .upload-btn-small, .view-btn-small {
+                margin-top: 5px;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-tachometer-alt"></i> Compliance Predictor Dashboard</h1>
+            <button class="logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+
+        <div class="card">
+            <form id="mappingForm">
+                <div class="input-group">
+                    <i class="fas fa-globe"></i>
+                    <select id="country" required aria-label="Select Country">
+                        <option value="">Select Country</option>
+                        <option value="India">India</option>
+                        <option value="USA">USA</option>
+                        <option value="Singapore">Singapore</option>
+                        <option value="UAE">UAE</option>
+                        <option value="Germany">Germany (EU)</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <i class="fas fa-building"></i>
+                    <select id="entity" required aria-label="Select Entity Type">
+                        <option value="">Select Entity Type</option>
+                        <option value="Individual">Individual</option>
+                        <option value="Business">Business</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <i class="fas fa-cogs"></i>
+                    <select id="product" required aria-label="Select Product Category">
+                        <option value="">Select Product Category</option>
+                        <option value="Fintech">Fintech / Payments</option>
+                        <option value="Insurance">Insurance</option>
+                        <option value="eSIM">eSIM / Telecom</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="submitBtn">
+                    <span id="btnText"><i class="fas fa-search"></i> Get Requirements</span>
+                </button>
+            </form>
+            <div id="error"></div>
+        </div>
+
+        <div class="card" id="resultsCard" style="display: none;">
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = "http://127.0.0.1:5000";
+
+        /* Redirect if user not logged in */
+        if (!localStorage.getItem("loggedIn")) {
+            window.location.href = "signin.html";
+        }
+
+        function logout() {
+            localStorage.removeItem("loggedIn");
+            fetch(`${BASE_URL}/logout`, {
+                method: "POST",
+                credentials: "include"
+            });
+            window.location.href = "signin.html";
+        }
+
+        /* Fetch compliance requirements */
+        document.getElementById("mappingForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const country = document.getElementById("country").value;
+            const entity = document.getElementById("entity").value;
+            const product = document.getElementById("product").value;
+
+            const errorDiv = document.getElementById("error");
+            const resultsDiv = document.getElementById("results");
+            const resultsCard = document.getElementById("resultsCard");
+            const submitBtn = document.getElementById("submitBtn");
+            const btnText = document.getElementById("btnText");
+
+            errorDiv.textContent = "";
+            resultsDiv.innerHTML = "";
+            resultsCard.style.display = "none";
+
+            // Show loading state
+            submitBtn.disabled = true;
+            btnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/get_mappings`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ country, entity, product })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultsDiv.innerHTML = `
+                        <h3><i class="fas fa-file-alt"></i> Required Documents:</h3>
+                        ${data.docs.map(doc => `
+                            <div class="document-item">
+                                <strong>${doc}</strong>
+                                <div>
+                                    <button class="upload-btn-small" onclick="uploadFor('${doc}')"><i class="fas fa-upload"></i> Upload</button>
+                                    <button class="view-btn-small" onclick="viewFor('${doc}')"><i class="fas fa-eye"></i> View</button>
+                                </div>
+                            </div>
+                        `).join("")}
+
+                        <h3><i class="fas fa-shield-alt"></i> Applicable Compliance Frameworks:</h3>
+                        <ul class="compliance-list">${data.compliance.map(c => `<li>${c}</li>`).join("")}</ul>
+                    `;
+                    resultsCard.style.display = "block";
+                } else {
+                    errorDiv.textContent = data.error || "Failed to fetch requirements.";
+                }
+
+            } catch (err) {
+                errorDiv.textContent = "Network error. Please check your connection.";
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                btnText.innerHTML = '<i class="fas fa-search"></i> Get Requirements';
+            }
+        });
+
+        /* Pick a file via dialog */
+        function pickFile() {
+            return new Promise(resolve => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.onchange = () => resolve(input.files[0]);
+                input.click();
+            });
+        }
+
+        /* Upload file for specific requirement */
+        async function uploadFor(docType) {
+            const file = await pickFile();
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("doc_type", docType);
+
+            const res = await fetch(`${BASE_URL}/upload_image`, {
+                method: "POST",
+                credentials: "include",
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (data.status === "success") {
+                alert(`Uploaded for ${docType}`);
+            } else {
+                alert("Upload failed: " + (data.error || "Unknown error"));
+            }
+        }
+
+        /* View uploaded files for a document type */
+        async function viewFor(docType) {
+            const res = await fetch(`${BASE_URL}/get_images?doc_type=${encodeURIComponent(docType)}`, {
+                method: "GET",
+                credentials: "include"
+            });
+
+            const imgs = await res.json();
+
+            if (!imgs.length) {
+                alert(`No files uploaded for ${docType}`);
+                return;
+            }
+
+            alert(
+                `Files for ${docType}:\n` +
+                imgs.map(i => i.filename).join("\n")
+            );
+        }
+    </script>
 </body>
 </html>
