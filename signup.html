@@ -143,11 +143,11 @@
             </button>
         </form>
         <div id="error"></div>
-        <p class="signin-link">Already have an account? <a href="signin.html">Sign In</a></p>
+        <p class="signin-link">Already have an account? <a href="index.html">Sign In</a></p>
     </div>
 
     <script>
-        const BASE_URL = 'http://127.0.0.1:5000';
+        const BASE_URL = 'http://ram-alb-mai-877271266.us-west-1.elb.amazonaws.com:6100';
 
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();

@@ -469,11 +469,11 @@
     </div>
 
     <script>
-        const BASE_URL = "http://127.0.0.1:5000";
+        const BASE_URL = "http://ram-alb-mai-877271266.us-west-1.elb.amazonaws.com:6100";
 
         /* Redirect if user not logged in */
         if (!localStorage.getItem("loggedIn")) {
-            window.location.href = "signin.html";
+            window.location.href = "index.html";
         }
 
         function logout() {
@@ -482,7 +482,7 @@
                 method: "POST",
                 credentials: "include"
             });
-            window.location.href = "signin.html";
+            window.location.href = "index.html";
         }
 
         /* Fetch compliance requirements */
